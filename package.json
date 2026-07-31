@@ -1,0 +1,10 @@
+{
+  "name": "allreva-harness",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Allreva의 짧고 명시적인 Agent 실행 흐름",
+  "keywords": ["pi-package"],
+  "pi": {
+    "skills": ["./skills"]
+  }
+}
