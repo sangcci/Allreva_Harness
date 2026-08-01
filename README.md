@@ -24,4 +24,5 @@ Allreva의 Agent 실행 자산을 관리하는 로컬 Git 저장소다. 사람�
 - 기본값은 main session 단독 작업이다.
 - 탐색과 점검은 fresh context의 읽기 전용 subagent로 분리한다.
 - 같은 worktree를 수정하는 writer는 하나만 둔다.
+- 큰 변경이나 학습이 필요한 변경은 `explain-diff`로 사람이 이해한 뒤 다음 행동을 결정한다.
 - 영구 기록은 Issue, RFC, ADR, PR에만 남긴다.
