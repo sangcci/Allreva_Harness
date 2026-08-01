@@ -11,8 +11,10 @@ Allreva의 Agent 실행 자산을 관리하는 로컬 Git 저장소다. 사람�
 - `skills/explain-diff/`: 필요한 변경에서 HTML 학습 자료를 만드는 Skill이다.
 - `integrations/`: Codex, Claude Code, Pi에서 같은 explain-diff 계약을 읽도록 하는 연결 템플릿이다.
 - `scripts/install-adapter.sh`: 대상 프로젝트에 Pi·Claude Code·Codex adapter를 설치한다.
+- `packages/git-workflow-core/`: 프로젝트 규칙 검증과 Git 상태 조회를 제공하는 읽기 전용 공통 core다.
+- `packages/git-workflow-cli/`: core 결과를 JSON으로 출력하는 CLI다.
 
-이 저장소는 아직 Git 도구, 자동 subagent 실행, CI를 포함하지 않는다. 실제 작업에서 필요한 부분만 추가한다.
+이 저장소는 아직 Git 쓰기, GitHub 원격 작업, 자동 subagent 실행, CI를 포함하지 않는다. 실제 작업에서 필요한 부분만 추가한다.
 
 ## 다른 coding harness에 연결
 

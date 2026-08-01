@@ -1,0 +1,9 @@
+{
+  "name": "@allreva/git-workflow-cli",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "allreva-git": "./bin/allreva-git.js"
+  }
+}

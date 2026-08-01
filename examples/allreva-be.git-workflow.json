@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "branch": {
+    "base": "develop",
+    "pattern": "{type}/#{issue}-{slug}"
+  },
+  "commit": {
+    "conventional": true,
+    "types": ["feat", "fix", "docs", "test", "refactor", "chore"],
+    "requireScope": true,
+    "maxHeaderLength": 72
+  },
+  "issue": {
+    "titlePattern": "[TYPE] 설명",
+    "types": ["FEAT", "BUG", "DOCS", "REFACTOR", "TEST", "PERF", "CHORE", "HOTFIX", "CI"]
+  },
+  "pullRequest": {
+    "titlePattern": "[#{issue}] 설명"
+  }
+}
