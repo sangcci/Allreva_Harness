@@ -10,8 +10,13 @@ Allreva의 Agent 실행 자산을 관리하는 로컬 Git 저장소다. 사람�
 - `agents/explain-diff.md`: diff·PR을 사람이 이해하고 퀴즈로 확인하도록 돕는 Human-in-the-loop 역할이다.
 - `skills/explain-diff/`: 필요한 변경에서 HTML 학습 자료를 만드는 Skill이다.
 - `integrations/`: Codex, Claude Code, Pi에서 같은 explain-diff 계약을 읽도록 하는 연결 템플릿이다.
+- `scripts/install-adapter.sh`: 대상 프로젝트에 Pi·Claude Code·Codex adapter를 설치한다.
 
 이 저장소는 아직 Git 도구, 자동 subagent 실행, CI를 포함하지 않는다. 실제 작업에서 필요한 부분만 추가한다.
+
+## 다른 coding harness에 연결
+
+`integrations/README.md`의 설치 방법을 따른다. 대상 프로젝트에는 플랫폼별 adapter만 복사되고, 공통 역할 계약과 Skill은 이 저장소에서 관리한다.
 
 ## 사용 원칙
 
