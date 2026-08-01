@@ -1,6 +1,6 @@
 ---
 name: explain-diff
-description: 큰 diff, branch, PR의 기존 구조·변경 이유·코드 흐름을 사람이 이해할 수 있는 HTML 학습 자료와 퀴즈로 만들 때 사용한다. AI가 작성한 변경을 사람이 병합·다음 작업 전에 이해해야 하거나, 익숙하지 않은 영역을 학습할 때 적합하다.
+description: 큰 diff, branch, PR 또는 RFC·ADR의 기존 구조·변경 이유·코드 흐름을 사람이 이해할 수 있는 HTML 학습 자료와 퀴즈로 만들 때 사용한다. AI가 작성한 변경을 사람이 병합·다음 작업 전에 이해해야 하거나, 익숙하지 않은 영역을 학습할 때 적합하다.
 ---
 
 # Allreva Explain Diff
@@ -17,8 +17,9 @@ description: 큰 diff, branch, PR의 기존 구조·변경 이유·코드 흐름
 | branch | 지정한 base와 `HEAD`의 diff |
 | 경로 | 해당 경로의 diff |
 | 대상 없음 | staged와 unstaged diff |
+| RFC 또는 ADR | 현재 코드와 문서에 적힌 의도한 변경 |
 
-대상이 비어 있으면 한 번만 질문한다. 빈 diff에는 결과물을 만들지 않는다.
+대상이 비어 있으면 한 번만 질문한다. 빈 diff에는 결과물을 만들지 않는다. RFC·ADR만 있는 구현 전 단계에서는 실제 diff 대신 의도한 변경임을 HTML에 분명히 표시한다.
 
 ## 결과물 생성
 
