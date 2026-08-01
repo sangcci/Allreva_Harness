@@ -24,9 +24,9 @@ description: 큰 diff, branch, PR 또는 RFC·ADR의 기존 구조·변경 이�
 ## 결과물 생성
 
 1. 변경 주변의 코드와 필요한 RFC·ADR을 읽는다.
-2. 역할 계약의 다섯 섹션과 3~5개 퀴즈를 포함한 self-contained HTML을 작성한다.
+2. 역할 계약의 섹션과 3~5개 퀴즈를 포함한 self-contained HTML을 작성한다. 흐름이 복잡하면 HTML 또는 inline SVG 다이어그램을 추가하고, 코드 근거에는 `경로:행 범위`와 필요한 짧은 안전한 발췌를 포함한다.
 3. 결과물은 `/tmp/YYYY-MM-DD-explain-diff-<slug>.html`에만 저장한다.
-4. HTML의 목차 링크, quiz click handler, 코드 블록 `white-space`, 동적 텍스트 escaping, 비밀값 제거를 확인한다.
+4. HTML의 목차 링크, quiz click handler, 코드 블록 `white-space`, 동적 텍스트 escaping, 비밀값 제거, 다이어그램의 가독성을 확인한다.
 5. 가능한 경우 사용자에게 절대 경로를 열 수 있는 명령을 안내한다.
 
 ## HITL gate
