@@ -74,10 +74,12 @@ RFC·ADR을 구현하거나 낯선 영역을 바꿀 때 사용자가 이해를 �
 
 ## 6. PR 전 HITL gate
 
-PR 생성 또는 병합 전에 `explain-diff`를 실행했다면, 사용자가 아래를 확인할 때까지 다음 행동을 확정하지 않는다.
+Harness 구축이 완료된 뒤, PR을 만들기 전에는 `explain-diff`를 실행한다. 사용자가 아래를 확인할 때까지 PR 생성을 진행하지 않는다.
 
 - 변경 이유와 실제 변경 흐름
 - 검증한 내용과 아직 확인하지 못한 위험
 - 퀴즈 또는 질문을 통해 남은 이해 공백
+
+사용자의 확인 뒤에만 agent 또는 Git workflow adapter가 PR을 생성할 수 있다. PR merge는 자동화하지 않으며, 항상 사용자가 GitHub에서 수동으로 수행한다. agent와 adapter는 `gh pr merge` 또는 동등한 merge 행동을 실행하지 않는다.
 
 Issue, RFC, ADR, PR에는 최종 판단과 결과만 남긴다. Git 도구 사용 규칙은 별도 도입 전까지 현재 프로젝트의 `AGENTS.md`와 CI 규칙을 따른다.
