@@ -7,6 +7,9 @@ Allreva의 Agent 실행 자산을 관리하는 로컬 Git 저장소다. 사람�
 - `skills/development-flow/`: 변경 작업에서 필요한 탐색·구현·검증 흐름을 짧게 안내한다.
 - `agents/scout.md`: 읽기 전용 영향 범위 탐색 역할이다.
 - `agents/reviewer.md`: 읽기 전용 요구사항·검증 누락 점검 역할이다.
+- `agents/explorer.md`: 구현 전 코드 탐색·계획 보조와 구현 후 변경 이해·학습을 위한 읽기 전용 역할이다.
+- `skills/explorer/`: explorer 역할을 필요한 작업에서만 호출하는 Skill이다.
+- `integrations/`: Codex, Claude Code, Pi에서 같은 explorer 계약을 읽도록 하는 연결 템플릿이다.
 
 이 저장소는 아직 Git 도구, 자동 subagent 실행, CI를 포함하지 않는다. 실제 작업에서 필요한 부분만 추가한다.
 
