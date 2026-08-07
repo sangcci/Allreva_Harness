@@ -1,31 +1,37 @@
-# Harness 연결 템플릿
+# Harness integration templates
 
-`agents/explain-diff.md`가 역할 계약의 단일 기준이다. 이 폴더의 파일은 각 coding harness가 그 계약을 읽도록 만드는 얇은 adapter다.
+Platform adapters connect harness contracts to coding environments. Common role contracts stay in this repository.
 
-## 프로젝트에 설치
+## Install
 
-Harness와 대상 프로젝트가 같은 부모 디렉터리에 있거나, `ALLREVA_HARNESS_ROOT`가 설정되어 있어야 한다.
+Harness and target project must share parent directory, or set `ALLREVA_HARNESS_ROOT`.
 
 ```bash
 ./scripts/install-adapter.sh --target all --project ../Allreva_BE
 ```
 
-기존 adapter를 덮어쓰려면 `--force`를 명시한다. 설치된 adapter는 대상 프로젝트의 Git에서 관리한다.
+Installer copies each target's explain-diff and git-workflow assets. Existing files need explicit `--force`. It validates full target mapping before replacing adapter files and rolls back replaced files if a later move fails.
 
-| 환경 | 설치 위치 | 발견 방식 |
-| --- | --- | --- |
-| Codex | `.codex/agents/explain-diff.toml` | 신뢰한 프로젝트의 `.codex/agents/`를 읽음 |
-| Claude Code | `.claude/agents/explain-diff.md` | 프로젝트 `.claude/agents/`를 읽음 |
-| Pi | `.pi/agents/explain-diff.md` | `pi-subagents`의 project agent로 읽음 |
+| Environment | Installed assets |
+| --- | --- |
+| Pi | `.pi/agents/explain-diff.md`, `.pi/agents/git-workflow.md`, `.pi/extensions/allreva-git-write.ts` |
+| Claude Code | `.claude/agents/explain-diff.md`, `.claude/agents/git-workflow.md` |
+| Codex | `.codex/agents/explain-diff.toml`, `.codex/agents/git-workflow.toml` |
 
-## Pi package로 임시 사용
+## Git write boundary
 
-Pi에서는 설치 없이 현재 실행에만 Harness를 추가할 수도 있다.
+[`git-write/PROTOCOL.md`](git-write/PROTOCOL.md) defines three bounded operations: worktree creation, push plus PR creation, and safe cleanup. Core and CLI remain read-only. Receipts are audit evidence, not authority.
+
+Pi has strong adapter-only MVP enforcement: write agent exposes custom native-confirmed tool, not general shell tool. Use interactive Pi only.
+
+Claude Code and Codex adapters are policy-only. Their general shell capability and user configuration can weaken restrictions. Follow platform README: interactive native approval for every exact write; never use noninteractive or permission-skipping modes. Manual disposable-repository checks remain required before production use.
+
+## Pi package use
+
+Pi can load this package without install for current run:
 
 ```bash
 pi -e /absolute/path/to/Allreva_Harness
 ```
 
-이 package는 `skills/`와 Pi adapter의 `explain-diff` agent를 함께 노출한다.
-
-프로젝트별로 adapter를 복사·설치할 때에도 역할 규칙을 수정하지 않는다. 역할 계약을 바꿔야 하면 `agents/explain-diff.md`를 수정한다.
+Project install copies platform assets only; it does not alter shared contracts.

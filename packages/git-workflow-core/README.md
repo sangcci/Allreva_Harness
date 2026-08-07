@@ -1,13 +1,51 @@
 # Git Workflow Core
 
-공통 core는 모델 호출, UI, GitHub 인증, Git 쓰기를 갖지 않는다.
+`@allreva/git-workflow-core` provides read-only Git workflow validation and plans.
 
-현재 제공하는 읽기 전용 기능:
+Features:
 
-- project config JSON 읽기
-- Issue·PR 제목 검증
-- branch 이름 생성·검증
-- Conventional Commit 형식의 기본 검증
-- 현재 Git root, branch, porcelain status 조회
+- config, Issue, PR, branch, and commit validation
+- current Git root, branch, and porcelain status lookup
+- worktree, PR, and cleanup preflight plans
+- scoped audit-receipt validation
 
-실제 commitlint 실행, stage·commit, `gh`를 통한 Issue·PR 생성은 아직 core에 넣지 않았다. 기존 `pi-git-commit`의 안전한 실행 경계를 추출하기 전까지 Pi adapter가 계속 담당한다.
+Core and CLI never create worktrees, branches, commits, remotes, Issues, or PRs. Platform adapter owns Git/GitHub writes only after native human UI confirmation. Preflight result and audit receipt never authorize a write.
+
+## Workflow config
+
+```json
+{
+  "workflow": {
+    "id": "allreva-be",
+    "worktreeRoot": ".worktrees"
+  }
+}
+```
+
+`worktreeRoot` must be non-empty repository-relative path. Absolute, Windows-rooted, UNC, parent-traversal, and symbolic-link paths fail. Worktree directory names use URI encoding.
+
+## Audit receipts
+
+Adapter may store human-confirmation record and validate its shape/scope with `validateAuditReceipt`. Receipt is audit evidence only; no preflight consumes it or treats it as authorization.
+
+```json
+{
+  "receiptId": "adapter-record-123",
+  "workflowId": "allreva-be",
+  "stage": "pr-creation",
+  "branch": "feat/#42-safe-plan",
+  "worktree": ".worktrees/feat%2F%2342-safe-plan",
+  "diffHash": "sha256:<calculateDiffHash output>",
+  "timestamp": "2025-01-01T00:00:00.000Z"
+}
+```
+
+## CLI
+
+```sh
+allreva-git worktree preflight --config .allreva.json --branch 'feat/#42-safe-plan'
+allreva-git pr preflight --config .allreva.json
+allreva-git cleanup preflight --config .allreva.json --path 'feat%2F%2342-safe-plan'
+```
+
+`preflightWorktreeCreate` only returns non-writing `git worktree add` plan. `preflightPullRequest` validates current configured worktree and local base. `preflightCleanup` rejects unregistered, locked, primary, dirty, untracked, or ignored worktrees; requires local branch merged into configured base; plans non-force `git worktree remove` and `git branch -d` only. Core does not inspect remote merge state or perform writes.

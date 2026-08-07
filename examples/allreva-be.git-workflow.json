@@ -4,6 +4,10 @@
     "base": "develop",
     "pattern": "{type}/#{issue}-{slug}"
   },
+  "workflow": {
+    "id": "allreva-be",
+    "worktreeRoot": ".worktrees"
+  },
   "commit": {
     "conventional": true,
     "types": ["feat", "fix", "docs", "test", "refactor", "chore"],

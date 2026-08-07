@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "description": "Allreva의 짧고 명시적인 Agent 실행 흐름",
   "keywords": ["pi-package"],
+  "scripts": {
+    "test": "node --test packages/git-workflow-core/test/workflow.test.js integrations/test/adapter-assets.test.mjs integrations/pi/test/allreva-git-write.test.mjs"
+  },
   "pi": {
     "skills": ["./skills"],
     "subagents": {
