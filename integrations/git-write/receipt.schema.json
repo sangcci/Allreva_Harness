@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Allreva Git write audit receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receiptId", "platform", "operation", "workflowId", "branch", "worktree", "base", "diffHash", "argvSha256", "approvedAt", "executedAt", "outcome", "toolVersion"],
+  "properties": {
+    "receiptId": { "type": "string", "format": "uuid" },
+    "platform": { "const": "pi" },
+    "operation": { "enum": ["worktree-create", "pr-create", "cleanup"] },
+    "workflowId": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "branch": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "worktree": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "base": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "diffHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "argvSha256": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "approvedAt": { "type": "string", "format": "date-time" },
+    "executedAt": { "type": "string", "format": "date-time" },
+    "outcome": { "enum": ["succeeded", "failed"] },
+    "toolVersion": { "const": "1" }
+  }
+}

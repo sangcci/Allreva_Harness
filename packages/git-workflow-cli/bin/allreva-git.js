@@ -3,6 +3,9 @@ import { basename, dirname, resolve } from "node:path";
 import {
   inspectGit,
   loadConfig,
+  preflightCleanup,
+  preflightPullRequest,
+  preflightWorktreeCreate,
   validateBranch,
   validateCommitMessage,
   validateIssueTitle,
@@ -16,6 +19,12 @@ try {
     print({ ok: true, value: inspectGit(process.cwd()), errors: [] });
   } else if (command === "validate") {
     runValidate(args);
+  } else if (command === "worktree") {
+    runWorktree(args);
+  } else if (command === "pr") {
+    runPullRequestPreflight(args);
+  } else if (command === "cleanup") {
+    runCleanup(args);
   } else {
     usage();
     process.exitCode = 2;
@@ -46,6 +55,39 @@ function runValidate(args) {
   if (!result.ok) process.exitCode = 1;
 }
 
+function runWorktree(args) {
+  const [target, ...rest] = args;
+  if (target !== "preflight") throw new Error("Worktree target must be preflight.");
+  const options = parseOptions(rest);
+  const result = preflightWorktreeCreate(loadConfig(required(options, "config")), {
+    cwd: process.cwd(),
+    branch: required(options, "branch"),
+  });
+  print(result);
+  if (!result.ok) process.exitCode = 1;
+}
+
+function runPullRequestPreflight(args) {
+  const [target, ...rest] = args;
+  if (target !== "preflight") throw new Error("PR target must be preflight.");
+  const options = parseOptions(rest);
+  const result = preflightPullRequest(loadConfig(required(options, "config")), { cwd: process.cwd() });
+  print(result);
+  if (!result.ok) process.exitCode = 1;
+}
+
+function runCleanup(args) {
+  const [target, ...rest] = args;
+  if (target !== "preflight") throw new Error("Cleanup target must be preflight.");
+  const options = parseOptions(rest);
+  const result = preflightCleanup(loadConfig(required(options, "config")), {
+    cwd: process.cwd(),
+    path: required(options, "path"),
+  });
+  print(result);
+  if (!result.ok) process.exitCode = 1;
+}
+
 function parseOptions(args) {
   const options = {};
   for (let i = 0; i < args.length; i += 2) {
@@ -69,5 +111,15 @@ function print(value) {
 function usage() {
   const executable = basename(process.argv[1]);
   const root = dirname(dirname(dirname(resolve(process.argv[1]))));
-  process.stderr.write(`Usage:\n  ${executable} inspect\n  ${executable} validate issue --config <file> --title <title>\n  ${executable} validate pr --config <file> --title <title>\n  ${executable} validate commit --config <file> --message <message>\n  ${executable} validate branch --config <file> --type <type> --issue <number> --slug <slug>\nHarness root: ${root}\n`);
+  process.stderr.write(`Usage:
+  ${executable} inspect
+  ${executable} validate issue --config <file> --title <title>
+  ${executable} validate pr --config <file> --title <title>
+  ${executable} validate commit --config <file> --message <message>
+  ${executable} validate branch --config <file> --type <type> --issue <number> --slug <slug>
+  ${executable} worktree preflight --config <file> --branch <branch>
+  ${executable} pr preflight --config <file>
+  ${executable} cleanup preflight --config <file> --path <relative-worktree-path>
+Harness root: ${root}
+`);
 }
