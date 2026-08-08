@@ -104,21 +104,39 @@ export function preflightWorktreeCreate(config, { cwd, branch } = {}) {
   });
 }
 
-export function preflightPullRequest(config, { cwd } = {}) {
+export function preflightPullRequest(config, { cwd, expectedChangedPaths, coverage } = {}) {
   const worktree = git(cwd, ["rev-parse", "--show-toplevel"]);
   const root = primaryWorktreeRoot(cwd);
   const branch = git(worktree, ["branch", "--show-current"]);
   const baseCheck = gitResult(worktree, ["rev-parse", "--verify", "--quiet", `refs/heads/${config.branch.base}`]);
   const diffHash = baseCheck.ok ? calculateDiffHash(worktree, config.branch.base) : null;
+  const changeCoverage = normalizePrChangeCoverage({ expectedChangedPaths, coverage });
+  const changes = inspectWorkingChanges(worktree);
+  const staged = new Set(changes.staged);
+  const expectedMissingFromStage = changeCoverage.expectedPaths.filter((path) => !staged.has(path));
+  const unexpectedStaged = changeCoverage.policy === "expected-paths"
+    ? changes.staged.filter((path) => !changeCoverage.expectedPaths.includes(path))
+    : changeCoverage.policy === "none" ? changes.staged : [];
+  const remainingChanges = [...unexpectedStaged, ...changes.unstaged, ...changes.untracked, ...changes.ignored];
   const checks = {
     dryRun: check(true, "No pull request created. Platform adapter owns PR creation after native human UI confirmation."),
     configuredWorktree: check(isInside(resolve(root, config.workflow.worktreeRoot), worktree), "PR preflight runs from a configured worktree."),
     currentBranch: check(Boolean(branch), "PR preflight requires a checked-out branch."),
     baseBranch: check(baseCheck.ok, baseCheck.ok ? `Base branch '${config.branch.base}' exists locally.` : `Base branch '${config.branch.base}' is missing locally.`),
+    validChangeCoverage: check(changeCoverage.errors.length === 0, changeCoverage.errors.join(" ") || "Change coverage is valid."),
+    expectedPathsStaged: check(expectedMissingFromStage.length === 0, expectedMissingFromStage.length ? `Expected changed paths are not staged: ${expectedMissingFromStage.join(", ")}.` : "Expected changed paths are staged."),
+    noNonAllowedRemainingChanges: check(remainingChanges.length === 0, remainingChanges.length ? `Non-allowed remaining changes: ${remainingChanges.join(", ")}.` : "No non-allowed remaining changes."),
   };
   return preflightResult("pull-request", checks, {
     action: "Platform adapter owns PR creation after its native human UI confirmation; this result is read-only validation.",
     root, worktree, branch, base: config.branch.base, diffHash,
+    changes,
+    changeCoverage: {
+      policy: changeCoverage.policy,
+      expectedPaths: changeCoverage.expectedPaths,
+      expectedMissingFromStage,
+      nonAllowedRemainingPaths: remainingChanges,
+    },
   });
 }
 
@@ -155,6 +173,43 @@ export function preflightCleanup(config, { cwd, path } = {}) {
     commands: mayDelete ? [["git", "worktree", "remove", target], ["git", "branch", "-d", branch]] : [],
     note: "Cleanup plan requires local branch merged into configured base. Remote merge state remains platform-adapter owned.",
   });
+}
+
+function normalizePrChangeCoverage({ expectedChangedPaths, coverage }) {
+  const errors = [];
+  const expectedPaths = expectedChangedPaths === undefined ? [] : expectedChangedPaths;
+  if (!Array.isArray(expectedPaths) || expectedPaths.some((path) => !isSafeRelativePath(path))) {
+    errors.push("expectedChangedPaths must be an array of non-empty repository-relative paths.");
+  }
+  const uniqueExpectedPaths = Array.isArray(expectedPaths) ? [...new Set(expectedPaths)] : [];
+  if (Array.isArray(expectedPaths) && uniqueExpectedPaths.length !== expectedPaths.length) errors.push("expectedChangedPaths must not contain duplicates.");
+  if (coverage !== undefined && coverage !== "staged") errors.push("coverage must be 'staged' when provided.");
+  if (uniqueExpectedPaths.length && coverage !== undefined) errors.push("expectedChangedPaths and coverage cannot be used together.");
+  return {
+    policy: uniqueExpectedPaths.length ? "expected-paths" : coverage === "staged" ? "staged" : "none",
+    expectedPaths: uniqueExpectedPaths,
+    errors,
+  };
+}
+
+function inspectWorkingChanges(cwd) {
+  const output = gitRaw(cwd, ["status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignored=matching"]);
+  const changes = { staged: [], unstaged: [], untracked: [], ignored: [] };
+  const entries = output.split("\0");
+  for (let index = 0; index < entries.length - 1; index += 1) {
+    const entry = entries[index];
+    const code = entry.slice(0, 2);
+    const paths = [entry.slice(3)];
+    if ((code.includes("R") || code.includes("C")) && entries[index + 1] !== undefined) paths.push(entries[++index]);
+    if (code === "??") changes.untracked.push(...paths);
+    else if (code === "!!") changes.ignored.push(...paths);
+    else {
+      if (code[0] !== " ") changes.staged.push(...paths);
+      if (code[1] !== " ") changes.unstaged.push(...paths);
+    }
+  }
+  for (const category of Object.values(changes)) category.sort();
+  return changes;
 }
 
 function preflightResult(operation, checks, plan) {

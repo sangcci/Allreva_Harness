@@ -71,7 +71,12 @@ function runPullRequestPreflight(args) {
   const [target, ...rest] = args;
   if (target !== "preflight") throw new Error("PR target must be preflight.");
   const options = parseOptions(rest);
-  const result = preflightPullRequest(loadConfig(required(options, "config")), { cwd: process.cwd() });
+  const expectedChangedPaths = options["expected-path"];
+  const result = preflightPullRequest(loadConfig(required(options, "config")), {
+    cwd: process.cwd(),
+    expectedChangedPaths,
+    coverage: options.coverage,
+  });
   print(result);
   if (!result.ok) process.exitCode = 1;
 }
@@ -94,7 +99,13 @@ function parseOptions(args) {
     const key = args[i];
     const value = args[i + 1];
     if (!key?.startsWith("--") || value === undefined) throw new Error(`Invalid option near '${key ?? ""}'.`);
-    options[key.slice(2)] = value;
+    const name = key.slice(2);
+    if (name === "expected-path") {
+      (options[name] ??= []).push(value);
+    } else {
+      if (Object.hasOwn(options, name)) throw new Error(`Duplicate --${name}.`);
+      options[name] = value;
+    }
   }
   return options;
 }
@@ -118,7 +129,7 @@ function usage() {
   ${executable} validate commit --config <file> --message <message>
   ${executable} validate branch --config <file> --type <type> --issue <number> --slug <slug>
   ${executable} worktree preflight --config <file> --branch <branch>
-  ${executable} pr preflight --config <file>
+  ${executable} pr preflight --config <file> [--expected-path <repository-relative-path> ... | --coverage staged]
   ${executable} cleanup preflight --config <file> --path <relative-worktree-path>
 Harness root: ${root}
 `);
