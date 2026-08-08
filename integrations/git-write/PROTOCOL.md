@@ -20,6 +20,8 @@ Allowed keys and required fields:
 
 `configPath`, `path`, and `bodyFile` are nonempty repository-relative paths. `bodyFile` is read as bounded UTF-8 content before approval; captured content, not mutable source path, is passed to `gh` and is not stored in receipt. `branch` and `title` are bounded strings. No command field exists.
 
+Before commit, caller may run read-only change-completeness preflight: `allreva-git pr preflight --config .allreva.json --expected-path <path> ...` requires exact expected paths staged, while `--coverage staged` permits all staged paths. Both block unstaged, untracked, and ignored paths, catching selected-stage omissions. These CLI inputs are not `pr-create` protocol fields and never authorize a write; adapter still requires clean status immediately before push.
+
 Adapter reruns all relevant preflight and scope checks after approval. Any changed normalized scope, diff hash, or argv blocks write. Adapter uses executable-plus-argv APIs only. No shell, command substitution, arbitrary remote, stage, commit, remote deletion, recursive deletion, forced deletion, or PR integration operation exists in v1.
 
 ## Response

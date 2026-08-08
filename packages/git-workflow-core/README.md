@@ -44,8 +44,9 @@ Adapter may store human-confirmation record and validate its shape/scope with `v
 
 ```sh
 allreva-git worktree preflight --config .allreva.json --branch 'feat/#42-safe-plan'
-allreva-git pr preflight --config .allreva.json
+allreva-git pr preflight --config .allreva.json --expected-path docs/guide.md --expected-path docs/checklist.md
+allreva-git pr preflight --config .allreva.json --coverage staged
 allreva-git cleanup preflight --config .allreva.json --path 'feat%2F%2342-safe-plan'
 ```
 
-`preflightWorktreeCreate` only returns non-writing `git worktree add` plan. `preflightPullRequest` validates current configured worktree and local base. `preflightCleanup` rejects unregistered, locked, primary, dirty, untracked, or ignored worktrees; requires local branch merged into configured base; plans non-force `git worktree remove` and `git branch -d` only. Core does not inspect remote merge state or perform writes.
+`preflightWorktreeCreate` only returns non-writing `git worktree add` plan. `preflightPullRequest` validates current configured worktree and local base, then reports `plan.changes.staged`, `unstaged`, `untracked`, and `ignored` paths. No coverage input allows no local changes. Repeated `--expected-path` selects exact paths that must all be staged; any unlisted staged path or any unstaged, untracked, or ignored path blocks readiness. `--coverage staged` permits current staged paths but still blocks unstaged, untracked, and ignored paths. These inputs are mutually exclusive. This catches selected-stage omissions before commit; renamed/copied entries include both paths. `preflightCleanup` rejects unregistered, locked, primary, dirty, untracked, or ignored worktrees; requires local branch merged into configured base; plans non-force `git worktree remove` and `git branch -d` only. Core does not inspect remote merge state or perform writes.

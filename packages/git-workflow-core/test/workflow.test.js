@@ -141,6 +141,68 @@ test("PR preflight is read-only and has no receipt gate", () => {
   assert.match(result.value.plan.action, /native human UI confirmation/);
 });
 
+test("PR change preflight characterizes staged, unstaged, untracked, and ignored paths", () => {
+  const cwd = repository();
+  const branch = "feat/#23-change-inventory";
+  const name = "feat%2F%2323-change-inventory";
+  const worktree = join(cwd, ".worktrees", name);
+  writeFileSync(join(cwd, ".gitignore"), ".cache/\n");
+  run(cwd, "add", ".gitignore");
+  run(cwd, "commit", "-m", "chore(test): ignore cache");
+  run(cwd, "worktree", "add", worktree, "-b", branch);
+  writeFileSync(join(worktree, "staged.md"), "staged\n");
+  run(worktree, "add", "staged.md");
+  writeFileSync(join(worktree, "README.md"), "base\nunstaged\n");
+  writeFileSync(join(worktree, "untracked.md"), "untracked\n");
+  mkdirSync(join(worktree, ".cache"));
+  writeFileSync(join(worktree, ".cache", "state"), "ignored\n");
+
+  const result = preflightPullRequest(config(), { cwd: worktree, coverage: "staged" });
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.value.plan.changes, {
+    staged: ["staged.md"],
+    unstaged: ["README.md"],
+    untracked: ["untracked.md"],
+    ignored: [".cache/"],
+  });
+  assert.deepEqual(result.value.plan.changeCoverage.nonAllowedRemainingPaths, ["README.md", "untracked.md", ".cache/"]);
+  assert.equal(result.value.checks.noNonAllowedRemainingChanges.ok, false);
+});
+
+test("PR change preflight blocks Docs #23 selected-stage omission", () => {
+  const cwd = repository();
+  const branch = "docs/#23-stage-completeness";
+  const name = "docs%2F%2323-stage-completeness";
+  const worktree = join(cwd, ".worktrees", name);
+  run(cwd, "worktree", "add", worktree, "-b", branch);
+  mkdirSync(join(worktree, "docs"));
+  writeFileSync(join(worktree, "docs", "selected.md"), "selected\n");
+  writeFileSync(join(worktree, "docs", "omitted.md"), "omitted\n");
+  run(worktree, "add", "docs/selected.md");
+
+  const omitted = preflightPullRequest(config(), {
+    cwd: worktree,
+    expectedChangedPaths: ["docs/selected.md", "docs/omitted.md"],
+  });
+  assert.equal(omitted.ok, false);
+  assert.deepEqual(omitted.value.plan.changeCoverage.expectedMissingFromStage, ["docs/omitted.md"]);
+  assert.deepEqual(omitted.value.plan.changeCoverage.nonAllowedRemainingPaths, ["docs/omitted.md"]);
+  assert.equal(omitted.value.checks.expectedPathsStaged.ok, false);
+
+  run(worktree, "add", "docs/omitted.md");
+  const complete = preflightPullRequest(config(), {
+    cwd: worktree,
+    expectedChangedPaths: ["docs/selected.md", "docs/omitted.md"],
+  });
+  assert.equal(complete.ok, true);
+
+  const configFile = join(cwd, ".allreva.json");
+  writeFileSync(configFile, JSON.stringify(config()));
+  const cli = runCli(worktree, "pr", "preflight", "--config", configFile, "--expected-path", "docs/selected.md", "--expected-path", "docs/omitted.md");
+  assert.equal(cli.status, 0);
+  assert.equal(cli.body.value.plan.changeCoverage.policy, "expected-paths");
+});
+
 test("cleanup plans only merged branch non-force deletion", () => {
   const cwd = repository();
   const branch = "feat/#11-cleanup";
