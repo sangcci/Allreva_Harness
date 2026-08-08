@@ -26,7 +26,9 @@ Core와 CLI는 Git/GitHub 쓰기를 하지 않는다. Platform adapter가 native
 - Skill과 subagent는 필요한 작업에서만 명시적으로 사용한다.
 - 기본값은 main session 단독 작업이다.
 - 탐색과 점검은 fresh context의 읽기 전용 subagent로 분리한다.
-- 같은 worktree를 수정하는 writer는 하나만 둔다.
+- 조사·논의 뒤 main session이 짧은 계획을 제시하고, 사용자 승인 뒤 Issue를 만든다. Issue에는 문제·범위·완료 조건을 남긴다.
+- 중요한 지속 결정이 여러 작업의 기준이 될 때만 ADR을 작성한다.
+- Issue와 필요한 ADR을 남긴 뒤 development workflow에 진입한다. 사용자 개발 workflow 전환 승인 뒤에만 repository 내부 `.worktrees/`에 작업별 worktree를 만들며, 구현은 그 worktree에서만 한다. 같은 worktree를 수정하는 writer는 하나만 둔다.
 - 큰 변경이나 학습이 필요한 변경은 `explain-diff`로 사람이 이해한 뒤 다음 행동을 결정한다.
-- Harness 완료 뒤 PR을 만들기 전에는 `explain-diff` 확인을 거치며, PR merge는 항상 사용자가 수동으로 수행한다.
-- 영구 기록은 Issue, RFC, ADR, PR에만 남긴다.
+- 모든 PR 생성 전에는 `explain-diff` 이해 확인과 PR 제목·본문·검증·남은 위험의 별도 생성 승인을 순서대로 받는다. PR merge는 항상 사용자가 수동으로 수행한다.
+- 영구 기록은 Issue, 필요한 ADR, PR에만 남긴다.
